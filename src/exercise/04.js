@@ -5,27 +5,10 @@ import * as React from 'react'
 import {useLocalStorageState} from '../utils'
 
 function Board(props) {
-  const {squares, onSquaresChanged} = props
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-
-  function selectSquare(square) {
-    if (winner || squares[square]) return
-
-    const updatedSquares = [...squares]
-    updatedSquares[square] = nextValue
-
-    onSquaresChanged(updatedSquares)
-  }
-
-  function restart() {
-    onSquaresChanged(Array(9).fill(null))
-  }
-
+  const {squares, onSquareSelected} = props
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onSquareSelected(i)}>
         {squares[i]}
       </button>
     )
@@ -33,7 +16,6 @@ function Board(props) {
 
   return (
     <div>
-      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -49,28 +31,22 @@ function Board(props) {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
 function GameHistory(props) {
-  const {history, onHistorySelected} = props
-  const [currentStep, setCurrentStep] = useLocalStorageState('currentStep', '0')
-
-  function onSelectStep(event) {
-    const {value} = event.target
-    onHistorySelected(value)
-    setCurrentStep(value)
-  }
+  const {history, currentStep, onStepSelected} = props
 
   const listItems = history.map((_, index) => {
-    const isCurrentStep = currentStep === String(index)
+    const isCurrentStep = parseInt(currentStep) === index
     return (
       <li key={index}>
-        <button disabled={isCurrentStep} value={index} onClick={onSelectStep}>
+        <button
+          disabled={isCurrentStep}
+          value={index}
+          onClick={() => onStepSelected(index)}
+        >
           Go to{' '}
           {index === 0 ? <span>game start</span> : <span>move #{index}</span>}{' '}
           {isCurrentStep && <span>(current)</span>}
@@ -83,35 +59,61 @@ function GameHistory(props) {
 }
 
 function Game() {
-  const [squares, setSquares] = useLocalStorageState(
-    'squares',
+  const [history, setHistory] = useLocalStorageState('history', [
     Array(9).fill(null),
-  )
-  const [history, setHistory] = useLocalStorageState('history', [])
+  ])
+  const [currentStep, setCurrentStep] = useLocalStorageState('currentStep', '0')
 
-  function onSquaresChanged(updatedSquares) {
-    setSquares(updatedSquares)
+  const squares = currentSquare(history, currentStep)
+  const nextValue = calculateNextValue(squares)
+  const winner = calculateWinner(squares)
+  const status = calculateStatus(winner, squares, nextValue)
 
-    const updatedHistory = [...history]
-    updatedHistory.push(updatedSquares)
-    setHistory(updatedHistory)
+  function selectSquare(square) {
+    if (winner || squares[square]) return
+
+    const newSquares = [...squares]
+    newSquares[square] = nextValue
+    const newHistory = history.slice(0, currentStep + 1)
+    setHistory([...newHistory, newSquares])
+    setCurrentStep(newHistory.length)
   }
 
-  function onHistorySelected(step) {
-    setSquares(history[step])
+  function onSquareSelected(square) {
+    selectSquare(square)
+  }
+
+  function onStepSelected(step) {
+    console.log('step: ', step)
+    setCurrentStep(step)
+  }
+
+  function restart() {
+    setHistory([Array(9).fill(null)])
   }
 
   return (
     <div className="game">
       <div className="game-board">
-        <Board squares={squares} onSquaresChanged={onSquaresChanged} />
+        <Board squares={squares} onSquareSelected={onSquareSelected} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
       </div>
       <div className="game-info">
-        <div>History</div>
-        <GameHistory history={history} onHistorySelected={onHistorySelected} />
+        <div className="status">{status}</div>
+        <GameHistory
+          history={history}
+          currentStep={currentStep}
+          onStepSelected={onStepSelected}
+        />
       </div>
     </div>
   )
+}
+
+function currentSquare(history, currentStep) {
+  return history[parseInt(currentStep)]
 }
 
 // eslint-disable-next-line no-unused-vars
