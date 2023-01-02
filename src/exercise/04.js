@@ -4,12 +4,7 @@
 import * as React from 'react'
 import {useLocalStorageState} from '../utils.js'
 
-function Board() {
-  const [squares, setSquares] = useLocalStorageState(
-    'squares',
-    Array(9).fill(null),
-  )
-
+function Board({squares, onSquaresChanged}) {
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
@@ -20,11 +15,11 @@ function Board() {
     const updatedSquares = [...squares]
     updatedSquares[square] = nextValue
 
-    setSquares(updatedSquares)
+    onSquaresChanged(updatedSquares)
   }
 
   function restart() {
-    setSquares(Array(9).fill(null))
+    onSquaresChanged(Array(9).fill(null))
   }
 
   function renderSquare(i) {
@@ -64,11 +59,50 @@ function Board() {
   )
 }
 
+function GameHistory({history}) {
+  const [currentStep, setCurrentStep] = React.useState(0)
+
+  function onSelectStep(event) {
+    setCurrentStep(event.target.step)
+  }
+
+  const listItems = history.map((_, index) => {
+    const isCurrentStep = currentStep === index
+    return (
+      <li key={index}>
+        <button disabled={isCurrentStep} step={index} onClick={onSelectStep}>
+          Go to step {index}
+        </button>
+      </li>
+    )
+  })
+
+  return <ol>{listItems}</ol>
+}
+
 function Game() {
+  const [squares, setSquares] = useLocalStorageState(
+    'squares',
+    Array(9).fill(null),
+  )
+  const [history, setHistory] = React.useState([])
+
+  function onSquaresChanged(updatedSquares) {
+    setSquares(updatedSquares)
+
+    const updatedHistory = [...history]
+    updatedHistory.push(updatedSquares)
+    setHistory(updatedHistory)
+  }
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board squares={squares} onSquaresChanged={onSquaresChanged} />
+      </div>
+      <div className="game-info">
+        <div>History</div>
+        <GameHistory history={history} />
       </div>
     </div>
   )
