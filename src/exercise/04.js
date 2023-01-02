@@ -56,11 +56,14 @@ function Board(props) {
   )
 }
 
-function GameHistory({history}) {
+function GameHistory(props) {
+  const {history, onHistorySelected} = props
   const [currentStep, setCurrentStep] = useLocalStorageState('currentStep', '0')
 
   function onSelectStep(event) {
-    setCurrentStep(event.target.value)
+    const {value} = event.target
+    onHistorySelected(value)
+    setCurrentStep(value)
   }
 
   const listItems = history.map((_, index) => {
@@ -92,6 +95,10 @@ function Game() {
     setHistory(updatedHistory)
   }
 
+  function onHistorySelected(step) {
+    setSquares(history[step])
+  }
+
   return (
     <div className="game">
       <div className="game-board">
@@ -99,7 +106,7 @@ function Game() {
       </div>
       <div className="game-info">
         <div>History</div>
-        <GameHistory history={history} />
+        <GameHistory history={history} onHistorySelected={onHistorySelected} />
       </div>
     </div>
   )
