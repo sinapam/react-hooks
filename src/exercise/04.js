@@ -71,7 +71,9 @@ function GameHistory(props) {
     return (
       <li key={index}>
         <button disabled={isCurrentStep} value={index} onClick={onSelectStep}>
-          Go to step {index}
+          Go to{' '}
+          {index === 0 ? <span>game start</span> : <span>move #{index}</span>}{' '}
+          {isCurrentStep && <span>(current)</span>}
         </button>
       </li>
     )
