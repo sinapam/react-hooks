@@ -4,7 +4,8 @@
 import * as React from 'react'
 import {useLocalStorageState} from '../utils.js'
 
-function Board({squares, onSquaresChanged}) {
+function Board(props) {
+  const {squares, onSquaresChanged} = props
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
