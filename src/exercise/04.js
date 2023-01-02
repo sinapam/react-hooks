@@ -5,7 +5,8 @@ import * as React from 'react'
 
 function Board() {
   const [squares, setSquares] = React.useState(() => {
-    return Array(9).fill(null)
+    const saved = JSON.parse(window.localStorage.getItem('squares'))
+    return saved || Array(9).fill(null)
   })
 
   const nextValue = calculateNextValue(squares)
@@ -32,6 +33,10 @@ function Board() {
       </button>
     )
   }
+
+  React.useEffect(() => {
+    window.localStorage.setItem('squares', JSON.stringify(squares))
+  }, [squares])
 
   return (
     <div>
