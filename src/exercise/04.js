@@ -30,10 +30,6 @@ function Board({squares, onSquaresChanged}) {
     )
   }
 
-  React.useEffect(() => {
-    window.localStorage.setItem('squares', JSON.stringify(squares))
-  }, [squares])
-
   return (
     <div>
       <div className="status">{status}</div>
@@ -60,17 +56,17 @@ function Board({squares, onSquaresChanged}) {
 }
 
 function GameHistory({history}) {
-  const [currentStep, setCurrentStep] = React.useState(0)
+  const [currentStep, setCurrentStep] = useLocalStorageState('currentStep', '0')
 
   function onSelectStep(event) {
-    setCurrentStep(event.target.step)
+    setCurrentStep(event.target.value)
   }
 
   const listItems = history.map((_, index) => {
-    const isCurrentStep = currentStep === index
+    const isCurrentStep = currentStep === String(index)
     return (
       <li key={index}>
-        <button disabled={isCurrentStep} step={index} onClick={onSelectStep}>
+        <button disabled={isCurrentStep} value={index} onClick={onSelectStep}>
           Go to step {index}
         </button>
       </li>
@@ -85,7 +81,7 @@ function Game() {
     'squares',
     Array(9).fill(null),
   )
-  const [history, setHistory] = React.useState([])
+  const [history, setHistory] = useLocalStorageState('history', [])
 
   function onSquaresChanged(updatedSquares) {
     setSquares(updatedSquares)
